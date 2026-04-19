@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
 import pandas as pd  
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -75,6 +76,6 @@ def export():
     print("Export triggered")
     return jsonify({"message": "Excel file created"})
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
