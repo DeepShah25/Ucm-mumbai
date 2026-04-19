@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify,send_file
 from flask_cors import CORS
 import sqlite3
 import pandas as pd  
@@ -68,13 +68,27 @@ def get_leads():
     return jsonify(rows)
 @app.route('/export', methods=['GET'])
 def export():
-    conn = sqlite3.connect('leads.db')
-    df = pd.read_sql_query("SELECT * FROM leads", conn)
-    conn.close()
+    try:
+        # 1. Connect and Read
+        conn = sqlite3.connect('leads.db')
+        df = pd.read_sql_query("SELECT * FROM leads", conn)
+        conn.close()
 
-    df.to_excel("leads.xlsx", index=False)
-    print("Export triggered")
-    return jsonify({"message": "Excel file created"})
+        # 2. Check if data exists
+        if df.empty:
+            return jsonify({"message": "No leads found to export"}), 404
+
+        # 3. Create the Excel file
+        file_path = "leads.xlsx"
+        df.to_excel(file_path, index=False)
+
+        # 4. Send the file to the user
+        return send_file(file_path, as_attachment=True)
+
+    except Exception as e:
+        # This is the 'except' clause your code was missing!
+        print(f"Export Error: {e}")
+        return jsonify({"error": "Could not generate Excel file"}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
